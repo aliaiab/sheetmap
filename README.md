@@ -18,7 +18,7 @@ Because a SheetMap defines both the foreground (the text itself) and the backgro
 
 Sheetmaps are completely agnostic to the method of rendering of the glyphs themselves, and any method can be used (atlased bitmaps, sdfs, msdfs and even directly sampling lines and bezier curves if you're so inclined).
 
-Sheetmaps naturally align well with texture arrays/and or bindless textures, as glyphs are stored using glyph indices, although it's easy to use atlases too with sheetmaps too.
+Sheetmaps naturally align well with texture arrays/and or bindless textures, as glyphs are stored using glyph indices, although it's easy to use atlases with sheetmaps too.
 
 ## Terminology
 
