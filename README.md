@@ -38,7 +38,14 @@ Fragment shader:
 //Tells sheetmap.glsl that there is an implementation of a texel sampler 
 #define SHEETMAP_TEXEL_SAMPLER
 #include "sheetmap.glsl"
+
+#if SLUG
+//Use the slug sampling backend
 #include "sheetmap_slug.glsl"
+#else
+//Use the sampling msdf backend
+#include "sheetmap_msdf.glsl"
+#endif
 
 uniform uint sheetmap_index;
 //This is just a standard uv ([0, 1] maps to [0, sheetmap.width] in ems
