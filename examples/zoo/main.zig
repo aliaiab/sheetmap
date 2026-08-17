@@ -64,5 +64,5 @@ const slog = sokol.log;
 const sg = sokol.gfx;
 const sapp = sokol.app;
 const sglue = sokol.glue;
-const shd = @import("shaders/triangle.glsl.zig");
+const shd = @import("shader");
 const std = @import("std");

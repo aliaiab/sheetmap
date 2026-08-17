@@ -1,4 +1,4 @@
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -7,8 +7,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const mod = b.addModule("sheetmap", .{
-        .root_source_file = b.path("src/sheetmap.zig"),
+    const mod = b.addModule("linomap", .{
+        .root_source_file = b.path("src/linomap.zig"),
         .target = target,
     });
 
@@ -21,20 +21,42 @@ pub fn build(b: *std.Build) void {
             .target = target,
             .optimize = optimize,
         })) |sokol| {
-            const exe = b.addExecutable(.{
-                .name = "sheetmap-zoo",
-                .root_module = b.createModule(.{
-                    .root_source_file = b.path("examples/zoo/main.zig"),
-                    .target = target,
-                    .optimize = optimize,
-                    .imports = &.{
-                        .{ .name = "sheetmap", .module = mod },
-                        .{ .name = "sokol", .module = sokol.module("sokol") },
-                    },
-                }),
-            });
+            // extract the sokol module and shdc dependency from sokol dependency
+            const mod_sokol = sokol.module("sokol");
+            const dep_shdc = sokol.builder.dependency("shdc", .{});
 
-            b.installArtifact(exe);
+            const maybe_sokol = b.lazyImport(@This(), "sokol");
+
+            if (maybe_sokol) |sokol_build| {
+
+                // call shdc.createModule() helper function, this returns a `!*Build.Module`:
+                const mod_shd = try sokol_build.shdc.createModule(b, "shader", mod_sokol, .{
+                    .shdc_dep = dep_shdc,
+                    .input = "examples/zoo/shader.glsl",
+                    .output = "shader.zig",
+                    .slang = .{
+                        .hlsl5 = true,
+                        .spirv_vk = true,
+                        .glsl430 = true,
+                    },
+                });
+
+                const exe = b.addExecutable(.{
+                    .name = "linomap-zoo",
+                    .root_module = b.createModule(.{
+                        .root_source_file = b.path("examples/zoo/main.zig"),
+                        .target = target,
+                        .optimize = optimize,
+                        .imports = &.{
+                            .{ .name = "linomap", .module = mod },
+                            .{ .name = "sokol", .module = sokol.module("sokol") },
+                            .{ .name = "shader", .module = mod_shd },
+                        },
+                    }),
+                });
+
+                b.installArtifact(exe);
+            }
         }
     }
 
