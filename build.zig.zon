@@ -3,7 +3,17 @@
     .version = "0.0.0",
     .fingerprint = 0x7efe692e25d36733, // Changing this has security and trust implications.
     .minimum_zig_version = "0.16.0",
-    .dependencies = .{},
+    .dependencies = .{
+        .TrueType = .{
+            .url = "git+https://codeberg.org/andrewrk/TrueType.git#ce9da97eb4d1d30fee2a3faa190b25cf0c5d0797",
+            .hash = "TrueType-2.0.0-Ne-mWFx1AQCFjSOoGeTbEftPraXV6E9bZ2eOwcIUfnec",
+        },
+        .sokol = .{
+            .url = "git+https://github.com/floooh/sokol-zig.git#91498cff7ed82c89036e3ea6bd8b7baa581106cd",
+            .hash = "sokol-0.1.0-pb1HKxumPwAHmB1rtMsj8GMbr-40BnxFLGT1AD5C4Vlk",
+            .lazy = true,
+        },
+    },
     .paths = .{
         "build.zig",
         "build.zig.zon",

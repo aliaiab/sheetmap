@@ -69,3 +69,5 @@ pub const CombinedSheetmapSampler = extern struct {
     map: Sheetmap,
     sampler: SheetmapSampler,
 };
+
+pub const Typeface = @import("Typeface.zig");

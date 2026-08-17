@@ -1,32 +1,41 @@
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+
+    const truetype = b.dependency("TrueType", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
     const mod = b.addModule("sheetmap", .{
         .root_source_file = b.path("src/sheetmap.zig"),
         .target = target,
     });
 
-    const exe = b.addExecutable(.{
-        .name = "sheetmap",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
+    mod.addImport("TrueType", truetype.module("TrueType"));
+
+    const build_examples = b.option(bool, "examples", "Build the examples") orelse false;
+
+    if (build_examples) {
+        if (b.lazyDependency("sokol", .{
             .target = target,
             .optimize = optimize,
-            .imports = &.{
-                .{ .name = "sheetmap", .module = mod },
-            },
-        }),
-    });
+        })) |sokol| {
+            const exe = b.addExecutable(.{
+                .name = "sheetmap-zoo",
+                .root_module = b.createModule(.{
+                    .root_source_file = b.path("examples/zoo/main.zig"),
+                    .target = target,
+                    .optimize = optimize,
+                    .imports = &.{
+                        .{ .name = "sheetmap", .module = mod },
+                        .{ .name = "sokol", .module = sokol.module("sokol") },
+                    },
+                }),
+            });
 
-    b.installArtifact(exe);
-
-    const run_step = b.step("run", "Run the app");
-    const run_cmd = b.addRunArtifact(exe);
-    run_step.dependOn(&run_cmd.step);
-    run_cmd.step.dependOn(b.getInstallStep());
-
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
+            b.installArtifact(exe);
+        }
     }
 
     const mod_tests = b.addTest(.{
@@ -35,14 +44,8 @@ pub fn build(b: *std.Build) void {
 
     const run_mod_tests = b.addRunArtifact(mod_tests);
 
-    const exe_tests = b.addTest(.{
-        .root_module = exe.root_module,
-    });
-
-    const run_exe_tests = b.addRunArtifact(exe_tests);
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
-    test_step.dependOn(&run_exe_tests.step);
 }
 
 const std = @import("std");

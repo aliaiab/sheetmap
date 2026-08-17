@@ -27,3 +27,41 @@ Some people may not like the term sheetmap, or may wonder why I call them this. 
 ## Using sheetmaps
 
 I provide a glsl interface for using sheetmaps in shaders and some zig code to build sheetmaps from utf8 strings.
+
+### In glsl
+
+Fragment shader:
+
+```glsl
+//Tells sheetmap.glsl where to start its resource bindings
+#define SHEETMAP_BINDING_START 10
+//Tells sheetmap.glsl that there is an implementation of a texel sampler 
+#define SHEETMAP_TEXEL_SAMPLER
+#include "sheetmap.glsl"
+#include "sheetmap_slug.glsl"
+
+uniform uint sheetmap_index;
+//This is just a standard uv ([0, 1] maps to [0, sheetmap.width] in ems
+//(and likewise for [0, 1] -> [0, sheetmap.height])
+in vec2 uv;
+
+out vec4 target_colour;
+
+void main() {
+    //This can of course be set on the cpu and put into a buffer
+    SheetmapSampler sheetmap_sampler;
+    //The typeface index to sample from
+    sheetmap_sampler.typeface = 0;
+    //The colour of the background
+    sheetmap_sampler.background_colour = packUnorm4x8(vec4(1, 1, 1, 1));
+    //The colour of the text
+    sheetmap_sampler.foreground_colour = packUnorm4x8(vec4(0, 0, 0, 1));
+
+    vec4 texel = sheetmapSampleTexel(
+        CombinedSheetmapSampler(sheetmaps.data[sheetmap_index], sheetmap_sampler), 
+        uv
+    );
+    
+    target_colour = texel;
+}
+```
